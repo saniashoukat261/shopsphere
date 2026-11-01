@@ -1,0 +1,12 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Wishlist</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main><h1>My wishlist</h1><div class="grid" id="grid"></div></main><script src="/app.js"></script>
+<script>
+async function draw() {
+  $('#grid').innerHTML = skeletons(4);
+  const items = await api('/api/user/wishlist');
+  $('#grid').innerHTML = items.length ? items.map(productCard).join('') : '<div class="empty" style="grid-column:1/-1">Your wishlist is empty. Tap the ♡ on any product to save it. <a href="/">Browse products</a></div>';
+  bindCards($('#grid'), items);
+  $('#grid').querySelectorAll('.heart').forEach(b => { const old = b.onclick; b.onclick = async () => { await old(); draw(); }; });
+}
+window.onReady = () => draw().catch(e => toast(e.message, true));
+</script></body></html>

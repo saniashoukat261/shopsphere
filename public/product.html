@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Product</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main>
+<div id="box"><div class="card skel" style="padding:24px"><div class="ph" style="height:340px"></div></div></div>
+<div id="sections" hidden>
+  <div class="card sec" id="details"><h2>Product details</h2><div id="dbox"></div></div>
+  <div class="card sec" id="specs"><h2>Specifications</h2><div class="table-wrap" id="sbox"></div></div>
+  <div class="card sec" id="reviews"><h2>Ratings &amp; Reviews</h2><div id="rbox"></div></div>
+  <h2 style="margin-top:34px" id="rt" hidden>More from this category</h2><div class="grid" id="rel"></div>
+</div>
+</main><script src="/app.js"></script>
+<script>
+const id = new URLSearchParams(location.search).get('id');
+let P = null, reviews = [], dist = {}, filter = 0;
+const off = p => p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+
+function renderTop() {
+  const p = P, imgs = [p.image, ...(p.images || [])].filter(Boolean), d = off(p);
+  document.title = p.name + ' - ShopSphere';
+  const stock = p.stock === 0 ? '<span class="stock-out">Out of stock</span>' : p.stock <= 5 ? `<span class="stock-low">Only ${p.stock} left in stock</span>` : '<span style="color:var(--ok);font-weight:600">In stock</span>';
+  $('#box').innerHTML = `<div class="crumbs"><a href="/">Home</a> › <a href="/">${esc(p.category)}</a> › ${esc(p.name)}</div>
+  <div class="pdp card">
+    <div class="gal"><div class="mainimg" id="mainimg">${imgs.length ? `<img id="mimg" src="${esc(imgs[0])}" alt="${esc(p.name)}" onerror="imgFail(this,'${emoji(p.category)}')">` : `<div class="ph">${emoji(p.category)}</div>`}${d ? `<span class="offbadge">-${d}%</span>` : ''}</div>
+      <div class="thumbs">${imgs.length > 1 ? imgs.map((u, i) => `<button class="thumb ${i ? '' : 'on'}" data-u="${esc(u)}"><img src="${esc(u)}" alt="" onerror="this.parentElement.remove()"></button>`).join('') : ''}</div></div>
+    <div class="pinfo">
+      <h1>${esc(p.name)}</h1>
+      <div class="rmeta">${p.ratingCount ? `${stars(p.ratingAvg)} <a href="#reviews">${p.ratingCount} Rating${p.ratingCount === 1 ? '' : 's'}</a>` : '<a href="#reviews">No ratings yet</a>'} <span class="sep">|</span> Category: <strong>${esc(p.category)}</strong></div>
+      <div class="row" style="margin:12px 0 0"><button class="chip heart txt ${wish.has(p._id) ? 'on' : ''}" data-w="${p._id}" style="position:static;padding:6px 14px;font-size:.85rem">${wish.has(p._id) ? '♥ In wishlist' : '♡ Add to wishlist'}</button><button class="chip" id="share">🔗 Share</button></div>
+      <div class="pricebox"><span class="now">${money(p.price)}</span>${d ? `<s class="old">${money(p.oldPrice)}</s><span class="off">-${d}%</span>` : ''}</div>
+      ${stock}
+      <div class="qrow"><span>Quantity</span><div class="qty2"><button id="qm" type="button">−</button><input id="qty" type="number" min="1" max="${p.stock}" value="1" ${p.stock === 0 ? 'disabled' : ''}><button id="qp" type="button">+</button></div><span class="hint">${p.stock} available</span></div>
+      <div class="buyrow"><button class="btn big buy js-buy" ${p.stock === 0 ? 'disabled' : ''}>Buy Now</button><button class="btn big js-add" ${p.stock === 0 ? 'disabled' : ''}>Add to Cart</button></div>
+    </div>
+    <aside class="pside">
+      <div class="sbox"><h4>Delivery options</h4><div>🚚 <strong>Standard delivery</strong><br><span class="hint">3-5 business days</span></div><div>🔒 Secure online payment</div></div>
+      <div class="sbox"><h4>Returns</h4><div>↩️ 7-day easy return</div></div>
+      <div class="sbox"><h4>Sold by</h4><strong>ShopSphere Official Store</strong><div class="hint">✔ Verified seller</div></div>
+    </aside>
+  </div>
+  <div class="stickybar"><strong class="now2">${money(p.price)}</strong><button class="btn sec js-add" ${p.stock === 0 ? 'disabled' : ''}>Add to Cart</button><button class="btn buy js-buy" ${p.stock === 0 ? 'disabled' : ''}>Buy Now</button></div>`;
+  const qty = () => Math.max(1, Math.min(+$('#qty').value || 1, p.stock));
+  $('#qm').onclick = () => $('#qty').value = Math.max(1, qty() - 1);
+  $('#qp').onclick = () => $('#qty').value = Math.min(p.stock, qty() + 1);
+  document.querySelectorAll('.js-add').forEach(b => b.onclick = () => cart.add(p, qty(), false, $('#mimg') || $('#mainimg .ph')));
+  document.querySelectorAll('.js-buy').forEach(b => b.onclick = () => { cart.add(p, qty(), true); location.href = '/cart.html'; });
+  $('#box').querySelector('.heart').onclick = e => toggleWish(p._id, e.currentTarget);
+  $('#share').onclick = async () => { try { await navigator.clipboard.writeText(location.href); toast('Link copied'); } catch { toast(location.href); } };
+  document.querySelectorAll('.thumb').forEach(t => t.onclick = () => { const m = $('#mimg'); if (m) m.src = t.dataset.u; document.querySelectorAll('.thumb').forEach(x => x.classList.toggle('on', x === t)); });
+  const mi = $('#mainimg'); if (mi) {
+    mi.onmouseenter = () => mi.classList.add('zoom'); mi.onmouseleave = () => mi.classList.remove('zoom');
+    mi.onmousemove = e => { const r = mi.getBoundingClientRect(), m = $('#mimg'); if (m) m.style.transformOrigin = ((e.clientX - r.left) / r.width * 100) + '% ' + ((e.clientY - r.top) / r.height * 100) + '%'; };
+  }
+}
+function renderDetails() {
+  const p = P;
+  $('#dbox').innerHTML = `<p style="white-space:pre-line">${esc(p.description) || 'No description available.'}</p><div class="hl"><div>✔ Genuine product, quality checked</div><div>✔ Fast delivery in 3-5 business days</div><div>✔ 7-day easy return</div><div>✔ Secure checkout</div></div>`;
+  const row = (k, v) => `<tr><td>${k}</td><td>${v}</td></tr>`;
+  $('#sbox').innerHTML = `<table class="spec">${row('Category', esc(p.category))}${row('SKU', 'SS-' + p._id.slice(-8).toUpperCase())}${row('Price', money(p.price))}${p.oldPrice > p.price ? row('Original price', money(p.oldPrice)) : ''}${row('Availability', p.stock ? `In stock (${p.stock} units)` : 'Out of stock')}${row('Customer rating', p.ratingCount ? `${p.ratingAvg} / 5 (${p.ratingCount} reviews)` : 'No ratings yet')}${row('Added on', fmtDate(p.createdAt))}${row('Seller', 'ShopSphere Official Store')}</table>`;
+}
+function renderReviews() {
+  const count = P.ratingCount, list = filter ? reviews.filter(r => r.rating === filter) : reviews;
+  const mine = me && reviews.find(r => r.user && r.user._id === me.id);
+  $('#rbox').innerHTML = `<div class="rsum"><div style="text-align:center"><div style="font-size:3rem;font-weight:800">${count ? P.ratingAvg : '–'}<span class="hint" style="font-size:1.1rem">/5</span></div>${stars(P.ratingAvg)}<div class="hint">${count} rating${count === 1 ? '' : 's'}</div></div>
+    <div>${[5, 4, 3, 2, 1].map(s => `<div class="bar" data-f="${s}" style="cursor:pointer"><span>${s}★</span><div><i style="width:${count ? (dist[s] || 0) / count * 100 : 0}%"></i></div><span>${dist[s] || 0}</span></div>`).join('')}</div></div>
+    <div class="chips"><button class="chip ${filter ? '' : 'on'}" data-f="0">All (${reviews.length})</button>${[5, 4, 3, 2, 1].map(s => `<button class="chip ${filter === s ? 'on' : ''}" data-f="${s}">${s} ★ (${dist[s] || 0})</button>`).join('')}<button class="chip" id="wr" style="margin-left:auto">✏️ ${mine ? 'Edit your review' : 'Write a review'}</button></div>
+    <div id="rform" hidden class="rf">${me ? `<label style="margin-top:0">Your rating</label><select id="rr">${[5, 4, 3, 2, 1].map(s => `<option value="${s}" ${mine && mine.rating === s ? 'selected' : ''}>${'★'.repeat(s)}${'☆'.repeat(5 - s)} (${s})</option>`).join('')}</select><label>Your review</label><textarea id="rc" rows="3" maxlength="500" placeholder="What did you like or dislike?">${mine ? esc(mine.comment) : ''}</textarea><button class="btn" id="rs" style="margin-top:12px">Submit review</button>` : 'Please <a href="/login.html">log in</a> to write a review.'}</div>
+    <div id="rlist">${list.length ? list.map(r => `<div class="review"><div class="rh"><span class="av">${esc((r.user ? r.user.name : 'C')[0].toUpperCase())}</span><div><strong>${esc(r.user ? r.user.name : 'Customer')}</strong> ${r.verified ? '<span class="vp">✔ Verified Purchase</span>' : ''}<div>${stars(r.rating)} <span class="hint">${fmtDate(r.createdAt)}</span></div></div></div><p>${esc(r.comment)}</p>${me && ((r.user && r.user._id === me.id) || me.role === 'admin') ? `<button class="rm" data-rd="${r._id}">Delete</button>` : ''}</div>`).join('') : `<div class="empty">${reviews.length ? 'No reviews with this rating.' : 'No reviews yet. Be the first to review this product!'}</div>`}</div>`;
+  $('#rbox').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = +b.dataset.f; renderReviews(); });
+  $('#wr').onclick = () => $('#rform').hidden = !$('#rform').hidden;
+  if (me) $('#rs').onclick = async () => { try { await api('/api/reviews/' + id, { method: 'POST', body: { rating: +$('#rr').value, comment: $('#rc').value } }); toast('Review saved'); await refresh(); } catch (e) { toast(e.message, true); } };
+  $('#rbox').querySelectorAll('[data-rd]').forEach(b => b.onclick = async () => { if (!confirm('Delete this review?')) return; try { await api('/api/reviews/' + b.dataset.rd, { method: 'DELETE' }); toast('Review deleted'); await refresh(); } catch (e) { toast(e.message, true); } });
+}
+async function refresh() {
+  P = await api('/api/products/' + encodeURIComponent(id));
+  renderTop(); renderDetails();
+  const r = await api('/api/reviews/' + encodeURIComponent(id));
+  reviews = r.items; dist = Object.fromEntries(r.dist.map(x => [x._id, x.n]));
+  renderReviews(); $('#sections').hidden = false;
+}
+window.onReady = async () => {
+  try {
+    await refresh();
+    const r = (await api('/api/products?limit=5&category=' + encodeURIComponent(P.category))).items.filter(x => x._id !== P._id).slice(0, 4);
+    if (r.length) { $('#rt').hidden = false; $('#rel').innerHTML = r.map(productCard).join(''); bindCards($('#rel'), r); }
+  } catch (e) { $('#box').innerHTML = `<div class="empty">Could not load this product.<br><small>${esc(e.message)}</small><br><br><a class="btn" href="/">Back to shop</a></div>`; }
+};
+</script></body></html>

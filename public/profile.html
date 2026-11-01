@@ -1,0 +1,9 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Profile</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main><h1>My profile</h1><div class="cols">
+<form class="card" id="pf"><h2>Account details</h2><label>Email</label><input id="em" disabled><label>Role</label><input id="ro" disabled><label>Full name</label><input id="nm" required minlength="2" maxlength="60"><button class="btn" style="margin-top:16px">Save changes</button></form>
+<form class="card" id="pw"><h2>Change password</h2><label>Current password</label><input id="cur" type="password" required autocomplete="current-password"><label>New password</label><input id="nxt" type="password" required autocomplete="new-password"><div class="hint">8+ characters with uppercase, lowercase and a number.</div><button class="btn" style="margin-top:16px">Update password</button></form></div></main><script src="/app.js"></script>
+<script>
+window.onReady = () => { $('#em').value = me.email; $('#ro').value = me.role; $('#nm').value = me.name; };
+$('#pf').onsubmit = async e => { e.preventDefault(); try { await api('/api/user/profile', { method: 'PUT', body: { name: $('#nm').value } }); toast('Profile updated'); initNav(); } catch (x) { toast(x.message, true); } };
+$('#pw').onsubmit = async e => { e.preventDefault(); try { await api('/api/user/password', { method: 'PUT', body: { current: $('#cur').value, next: $('#nxt').value } }); toast('Password updated'); $('#pw').reset(); } catch (x) { toast(x.message, true); } };
+</script></body></html>

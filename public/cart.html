@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Cart</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main><h1>Your cart</h1>
+<div class="two"><div class="card" id="lines"></div>
+<form class="card" id="co"><h2>Checkout</h2>
+<div class="sum"><span>Subtotal</span><span id="sub">$0.00</span></div>
+<div class="sum" id="drow" hidden><span>Discount <b id="dcode"></b></span><span id="disc" style="color:var(--ok)"></span></div>
+<div class="sum big"><span>Total</span><strong id="total">$0.00</strong></div>
+<label>Coupon code</label><div class="row" style="margin:0"><input id="cc" placeholder="WELCOME10" style="text-transform:uppercase"><button type="button" class="btn sec" id="apply">Apply</button></div>
+<p class="hint">Try WELCOME10 (10% off) or SAVE20 (20% off)</p>
+<label>Shipping address</label><textarea id="addr" rows="2" required minlength="10"></textarea>
+<label>Card number (demo payment)</label><input id="num" placeholder="1234 5678 9012 3456" maxlength="19" required>
+<div class="cols"><div><label>Expiry</label><input id="exp" placeholder="MM/YY" maxlength="5" required></div><div><label>CVC</label><input id="cvc" placeholder="123" maxlength="4" required></div></div>
+<p class="hint">🔒 Demo payment: any card number works. No real charge is made and card details are never stored.</p>
+<button class="btn" style="width:100%" id="pay">Pay &amp; place order</button></form></div></main><script src="/app.js"></script>
+<script>
+let coupon = null;
+const subtotal = () => cart.get().reduce((s, i) => s + i.price * i.qty, 0);
+function totals() {
+  const s = subtotal(), d = coupon ? Math.round(s * coupon.percent) / 100 : 0;
+  $('#sub').textContent = money(s); $('#drow').hidden = !coupon;
+  if (coupon) { $('#dcode').textContent = `(${coupon.code} −${coupon.percent}%)`; $('#disc').textContent = '−' + money(d); }
+  $('#total').textContent = money(s - d);
+}
+function draw() {
+  const c = cart.get();
+  $('#lines').innerHTML = c.length ? c.map((i, n) => `<div class="cart-line">${i.image ? `<img src="${esc(i.image)}" width="64" height="64" style="object-fit:cover;border-radius:10px" onerror="imgFail(this,'${emoji(i.cat)}')">` : `<div class="ph" style="width:64px;height:64px;font-size:1.6rem;border-radius:10px">${emoji(i.cat)}</div>`}<div class="info"><strong>${esc(i.name)}</strong><div class="hint">${money(i.price)} each</div></div><input type="number" min="1" max="${i.stock}" value="${i.qty}" data-n="${n}"><strong>${money(i.price * i.qty)}</strong><button class="btn danger sm" data-r="${n}">✕</button></div>`).join('') : '<div class="empty">Your cart is empty. <a href="/">Browse products</a></div>';
+  $('#pay').disabled = !c.length; totals();
+  $('#lines').querySelectorAll('input').forEach(el => el.onchange = () => { const c = cart.get(); c[el.dataset.n].qty = Math.max(1, Math.min(+el.value || 1, c[el.dataset.n].stock)); cart.set(c); draw(); });
+  $('#lines').querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const c = cart.get(); c.splice(b.dataset.r, 1); cart.set(c); draw(); });
+}
+$('#apply').onclick = async () => {
+  try { coupon = await api('/api/coupons/validate', { method: 'POST', body: { code: $('#cc').value, subtotal: subtotal() } }); toast('Coupon applied!'); } catch (e) { coupon = null; toast(e.message, true); }
+  totals();
+};
+$('#num').oninput = e => e.target.value = e.target.value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
+$('#exp').oninput = e => { let v = e.target.value.replace(/\D/g, '').slice(0, 4); e.target.value = v.length > 2 ? v.slice(0, 2) + '/' + v.slice(2) : v; };
+$('#co').onsubmit = async e => {
+  e.preventDefault(); $('#pay').disabled = true;
+  try {
+    const o = await api('/api/orders', { method: 'POST', body: { items: cart.get().map(i => ({ productId: i.id, qty: i.qty })), address: $('#addr').value, coupon: coupon && coupon.code, card: { number: $('#num').value, expiry: $('#exp').value, cvc: $('#cvc').value } } });
+    cart.set([]); toast('Order placed! Confirmation email sent.'); setTimeout(() => location.href = '/invoice.html?id=' + o._id, 900);
+  } catch (x) { toast(x.message, true); $('#pay').disabled = false; }
+};
+window.onReady = draw;
+</script></body></html>

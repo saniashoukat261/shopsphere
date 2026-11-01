@@ -1,0 +1,10 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - My Orders</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main><h1>My orders</h1><div class="card table-wrap" id="box">Loading...</div></main><script src="/app.js"></script>
+<script>
+window.onReady = async () => {
+  try {
+    const o = await api('/api/orders/mine');
+    $('#box').innerHTML = o.length ? `<table><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr>${o.map(x => `<tr><td>#${esc(x._id.slice(-6).toUpperCase())}</td><td>${fmtDate(x.createdAt)}</td><td style="white-space:normal">${x.items.map(i => esc(i.name) + ' ×' + i.qty).join(', ')}</td><td>${money(x.total)}</td><td><span class="pill ${x.status}">${x.status}</span></td><td><a class="btn sec sm" href="/invoice.html?id=${x._id}">Invoice</a></td></tr>`).join('')}</table>` : '<div class="empty">No orders yet. <a href="/">Start shopping</a></div>';
+  } catch (e) { toast(e.message, true); }
+};
+</script></body></html>

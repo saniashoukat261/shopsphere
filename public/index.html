@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Shop</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main><section class="hero"><h1>Everything you need, delivered to your door</h1><p>Shop electronics, fashion, home and sports essentials at great prices.</p><a class="btn big" href="#shop">Shop now</a></section>
+<div class="ticker" aria-label="Store offers"><div class="track"><span>🚚 Fast delivery in 3-5 days</span><span>🏷️ Use code <b>WELCOME10</b> for 10% off</span><span>🔒 Secure checkout</span><span>↩️ 7-day easy returns</span><span>⭐ Verified customer reviews</span><span>🚚 Fast delivery in 3-5 days</span><span>🏷️ Use code <b>WELCOME10</b> for 10% off</span><span>🔒 Secure checkout</span><span>↩️ 7-day easy returns</span><span>⭐ Verified customer reviews</span></div></div>
+<h2>Shop by category</h2>
+<div class="catbar" id="catbar"></div>
+<h2 id="shop">Our products</h2>
+<div class="filters f4">
+  <input id="q" placeholder="Search products...">
+  <select id="cat" hidden><option value="">All categories</option></select>
+  <input id="min" type="number" min="0" placeholder="Min price">
+  <input id="max" type="number" min="0" placeholder="Max price">
+  <select id="sort"><option value="newest">Newest</option><option value="rating">Top rated</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option><option value="name">Name A-Z</option></select>
+</div>
+<div class="grid" id="grid"></div><div class="pager" id="pager"></div></main><script src="/app.js"></script>
+<script>
+let page = 1;
+async function load() {
+  $('#grid').innerHTML = skeletons(8);
+  const p = new URLSearchParams({ page, q: $('#q').value, category: $('#cat').value, min: $('#min').value, max: $('#max').value, sort: $('#sort').value });
+  try {
+    const d = await api('/api/products?' + p);
+    $('#grid').innerHTML = d.items.length ? d.items.map(productCard).join('') : '<div class="empty" style="grid-column:1/-1">No products found.</div>';
+    bindCards($('#grid'), d.items);
+    pager($('#pager'), d.page, d.pages, n => { page = n; load(); scrollTo(0, 0); });
+  } catch (e) { $('#grid').innerHTML = ''; toast(e.message, true); }
+}
+window.onReady = async () => {
+  const cats = await api('/api/products/categories');
+  cats.forEach(c => $('#cat').insertAdjacentHTML('beforeend', `<option>${esc(c)}</option>`));
+  $('#catbar').innerHTML = [['', '🛒', 'All'], ...cats.map(c => [c, emoji(c), c])].map(([v, e, n], i) => `<button class="catchip ${v ? '' : 'on'}" data-c="${esc(v)}" style="--d:${i * 60}ms"><span class="ce">${e}</span><span>${esc(n)}</span></button>`).join('');
+  $('#catbar').onclick = e => { const b = e.target.closest('.catchip'); if (!b) return; $('#cat').value = b.dataset.c; document.querySelectorAll('.catchip').forEach(x => x.classList.toggle('on', x === b)); page = 1; load(); };
+  const f = () => { page = 1; load(); };
+  $('#q').oninput = debounce(f); ['cat', 'min', 'max', 'sort'].forEach(id => $('#' + id).onchange = f);
+  load();
+};
+</script></body></html>

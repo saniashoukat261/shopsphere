@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - About</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main>
+<header class="phead"><span class="eyebrow">About us</span><h1>We make online shopping <span class="grad">simple, safe</span> and enjoyable</h1><p>ShopSphere brings electronics, fashion, home, sports, books, beauty, toys and kitchen essentials together in one trusted store.</p><a class="btn" href="/">Start shopping →</a></header>
+<div class="stats" id="st">
+  <div class="card stat tc"><div class="n" id="s1">–</div><div class="l">Products</div></div>
+  <div class="card stat tc"><div class="n" id="s2">–</div><div class="l">Categories</div></div>
+  <div class="card stat tc"><div class="n">3-5</div><div class="l">Days delivery</div></div>
+  <div class="card stat tc"><div class="n">7</div><div class="l">Day easy returns</div></div>
+</div>
+<h2 class="sh">Our mission &amp; values</h2>
+<div class="cards3">
+  <div class="card fcard"><div class="ico">🎯</div><h3>Our mission</h3><p>Give every customer quality products at fair prices with a checkout they can trust.</p></div>
+  <div class="card fcard"><div class="ico">💡</div><h3>Our vision</h3><p>To become the most loved everyday marketplace, known for honesty, speed and great service.</p></div>
+  <div class="card fcard"><div class="ico">🤝</div><h3>Our values</h3><p>Transparency, customer first, and real reviews from real buyers. No tricks, no hidden fees.</p></div>
+</div>
+<h2 class="sh">Why shop with us</h2>
+<div class="cards3">
+  <div class="card fcard"><div class="ico">🚚</div><h3>Fast delivery</h3><p>Orders arrive in 3-5 business days.</p></div>
+  <div class="card fcard"><div class="ico">🔒</div><h3>Secure checkout</h3><p>Protected accounts and safe payment flow.</p></div>
+  <div class="card fcard"><div class="ico">⭐</div><h3>Real reviews</h3><p>Ratings and reviews with a verified purchase badge.</p></div>
+  <div class="card fcard"><div class="ico">🏷️</div><h3>Coupons &amp; deals</h3><p>Regular discounts and promo codes like WELCOME10.</p></div>
+  <div class="card fcard"><div class="ico">↩️</div><h3>Easy returns</h3><p>Not happy? Return within 7 days.</p></div>
+  <div class="card fcard"><div class="ico">💬</div><h3>Friendly support</h3><p>Our team replies within one business day.</p></div>
+</div>
+<h2 class="sh">How it works</h2>
+<div class="steps">
+  <div class="card step"><span>1</span><h3>Browse</h3><p>Search and filter thousands of options.</p></div>
+  <div class="card step"><span>2</span><h3>Add to cart</h3><p>Apply a coupon for extra savings.</p></div>
+  <div class="card step"><span>3</span><h3>Checkout</h3><p>Pay securely and get an invoice.</p></div>
+  <div class="card step"><span>4</span><h3>Delivered</h3><p>Track your order and leave a review.</p></div>
+</div>
+<div class="cta"><h2>Ready to find something you love?</h2><p>Join ShopSphere today and enjoy a better way to shop.</p><a class="btn big" href="/register.html">Create free account</a></div>
+</main><script src="/app.js"></script>
+<script>
+window.onReady = async () => { try { $('#s1').textContent = (await api('/api/products?limit=1')).total; countUp($('#s1')); $('#s2').textContent = (await api('/api/products/categories')).length; countUp($('#s2')); } catch {} };
+</script></body></html>

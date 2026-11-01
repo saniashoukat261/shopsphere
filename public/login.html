@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Login</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main><form class="card form" id="f" novalidate><h1>Login</h1>
+<label>Email</label><input id="email" type="email" required autocomplete="email">
+<label>Password</label><input id="password" type="password" required autocomplete="current-password">
+<p id="err" style="color:var(--err);min-height:1.2em"></p>
+<button class="btn" style="width:100%">Login</button><p class="hint" style="text-align:center">No account? <a href="/register.html">Register</a></p></form></main>
+<script src="/app.js"></script><script>
+$('#f').onsubmit = async e => {
+  e.preventDefault(); $('#err').textContent = '';
+  const em = $('#email').value;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) return $('#err').textContent = 'Enter a valid email';
+  if ('login' === 'register' && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,64}$/.test($('#password').value)) return $('#err').textContent = 'Password must be 8+ characters with uppercase, lowercase and a number';
+  try { await api('/api/auth/login', { method: 'POST', body: {email:$('#email').value,password:$('#password').value} }); location.href = '/'; } catch (x) { $('#err').textContent = x.message; }
+};
+</script></body></html>

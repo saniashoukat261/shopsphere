@@ -1,0 +1,14 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Invoice</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main><div class="row noprint"><a class="btn sec" href="/orders.html">← My orders</a><button class="btn" onclick="print()">🖨 Print / Save PDF</button></div><div class="card invoice" id="box">Loading...</div></main><script src="/app.js"></script>
+<script>
+window.onReady = async () => {
+  try {
+    const o = await api('/api/orders/' + encodeURIComponent(new URLSearchParams(location.search).get('id')));
+    $('#box').innerHTML = `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><h1 style="margin:0">INVOICE</h1><div class="hint">#${o._id.slice(-6).toUpperCase()}</div></div><div style="text-align:right"><strong>🛒 ShopSphere</strong><div class="hint">${fmtDate(o.createdAt)}</div><span class="pill ${o.status}">${o.status}</span></div></div>
+    <div class="cols" style="margin:22px 0"><div><div class="hint">Billed to</div><strong>${esc(o.user.name)}</strong><br>${esc(o.user.email)}</div><div><div class="hint">Ship to</div>${esc(o.address)}</div></div>
+    <div class="table-wrap"><table><tr><th>Item</th><th>Price</th><th>Qty</th><th>Amount</th></tr>${o.items.map(i => `<tr><td>${esc(i.name)}</td><td>${money(i.price)}</td><td>${i.qty}</td><td>${money(i.price * i.qty)}</td></tr>`).join('')}</table></div>
+    <div style="max-width:300px;margin-left:auto;margin-top:16px"><div class="sum"><span>Subtotal</span><span>${money(o.subtotal ?? o.total)}</span></div>${o.discount ? `<div class="sum"><span>Discount (${esc(o.coupon)})</span><span>−${money(o.discount)}</span></div>` : ''}<div class="sum big"><span>Total</span><strong>${money(o.total)}</strong></div></div>
+    <p class="hint" style="margin-top:20px">Payment: ${esc(o.payment && o.payment.method)} · ${esc(o.payment && o.payment.status)} · ${esc(o.payment && o.payment.transactionId)}</p>`;
+  } catch (e) { $('#box').innerHTML = '<div class="empty">Order not found.</div>'; }
+};
+</script></body></html>

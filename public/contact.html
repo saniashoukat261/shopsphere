@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopSphere - Contact</title><link rel="stylesheet" href="/style.css"></head>
+<body><div id="nav"></div><main>
+<header class="phead"><span class="eyebrow">Contact</span><h1>We'd love to <span class="grad">hear from you</span></h1><p>Questions about an order, a product or a partnership? Send us a message and we'll get back within one business day.</p></header>
+<div class="cards3" style="margin-bottom:26px">
+  <div class="card fcard tc"><div class="ico c">📧</div><h3>Email</h3><p>support@shopsphere.com</p></div>
+  <div class="card fcard tc"><div class="ico c">📞</div><h3>Phone</h3><p>+92 300 0000000</p></div>
+  <div class="card fcard tc"><div class="ico c">📍</div><h3>Address</h3><p>Burewala, Punjab, Pakistan</p></div>
+  <div class="card fcard tc"><div class="ico c">🕘</div><h3>Working hours</h3><p>Mon - Sat, 9am - 6pm</p></div>
+</div>
+<div class="cols">
+  <form class="card" id="f" style="padding:28px"><h2>Send us a message</h2>
+    <label style="margin-top:0">Your name</label><input id="n" required minlength="2" placeholder="Full name">
+    <label>Email address</label><input id="e" type="email" required placeholder="you@example.com">
+    <label>Message</label><textarea id="m" rows="5" required minlength="10" maxlength="1500" placeholder="How can we help you?"></textarea>
+    <button class="btn big" style="margin-top:18px;width:100%">Send message</button></form>
+  <div><h2>Frequently asked questions</h2>
+    <details open><summary>How long does delivery take?</summary><p>Most orders arrive within 3-5 business days.</p></details>
+    <details><summary>Can I return a product?</summary><p>Yes. You can return items within 7 days of delivery.</p></details>
+    <details><summary>How do I use a coupon?</summary><p>Enter your code in the cart (for example WELCOME10) and click Apply before paying.</p></details>
+    <details><summary>Where can I see my orders and invoices?</summary><p>Log in and open My Orders. Each order has a printable invoice.</p></details>
+    <details><summary>How do I write a review?</summary><p>Open any product page, scroll to Ratings &amp; Reviews and click Write a review.</p></details>
+  </div>
+</div>
+</main><script src="/app.js"></script>
+<script>
+$('#f').onsubmit = async e => { e.preventDefault(); try { await api('/api/contact', { method: 'POST', body: { name: $('#n').value, email: $('#e').value, message: $('#m').value } }); toast('Message sent. Thank you!'); $('#f').reset(); } catch (x) { toast(x.message, true); } };
+</script></body></html>
